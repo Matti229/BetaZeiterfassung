@@ -1,73 +1,74 @@
-let manualStartTime = null;
-let manualInterval = null;
+const stampInput = document.getElementById('stampInput');
+const stampBtn = document.getElementById('stampBtn');
+const outstampBtn = document.getElementById('outstampBtn');
+const workedTimeDisplay = document.getElementById('workedTime');
 
-const manualStartInput = document.getElementById('manualStartInput');
-const manualStartBtn = document.getElementById('manualStartBtn');
-const manualDisplay = document.getElementById('manualDisplay');
-const manualWarning = document.getElementById('manualWarning');
+let stampedInTime = null;
+let workInterval = null;
+let alerted8h = false;
 
-manualStartBtn.addEventListener('click', () => {
-  const input = manualStartInput.value.trim();
-  if (!/^\d{1,2}:\d{2}$/.test(input)) {
-    manualDisplay.textContent = "Ungültiges Format. Bitte HH:MM verwenden.";
+// Handle Einstempeln
+stampBtn.addEventListener('click', () => {
+  const inputTime = stampInput.value;
+  if (!inputTime) {
+    alert('Bitte Einstempelzeit eingeben.');
     return;
   }
 
-  const [h, m] = input.split(':').map(Number);
   const now = new Date();
-  manualStartTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0);
+  const [hours, minutes] = inputTime.split(':');
+  stampedInTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), parseInt(hours), parseInt(minutes));
 
-  if (manualStartTime > new Date()) {
-    manualDisplay.textContent = "Zeit liegt in der Zukunft.";
+  if (stampedInTime > now) {
+    alert('Einstempelzeit kann nicht in der Zukunft liegen.');
+    stampedInTime = null;
     return;
   }
 
-  manualStartInput.disabled = true;
-  manualStartBtn.disabled = true;
-  manualWarning.textContent = "";
-  updateManualTimer();
+  if (workInterval) clearInterval(workInterval);
+  alerted8h = false;
 
-  manualInterval = setInterval(updateManualTimer, 1000);
+  workInterval = setInterval(() => {
+    const msWorked = Date.now() - stampedInTime.getTime();
+    const netTime = subtractPause(msWorked);
+    workedTimeDisplay.textContent = `Geleistete Zeit: ${formatTime(netTime)}`;
+
+    if (!alerted8h && netTime >= 8 * 3600000) {
+      alert('Achtung: 8 Stunden erreicht!');
+      alerted8h = true;
+    }
+  }, 1000);
 });
 
-function updateManualTimer() {
-  const now = new Date();
-  let elapsedMs = now - manualStartTime;
-
-  if (elapsedMs <= 0) {
-    manualDisplay.textContent = "Zeit liegt in der Zukunft.";
+// Handle Ausstempeln
+outstampBtn.addEventListener('click', () => {
+  if (!stampedInTime) {
+    alert('Bitte zuerst einstempeln.');
     return;
   }
 
-  let deducted = 0;
+  const msWorked = Date.now() - stampedInTime.getTime();
+  const netTime = subtractPause(msWorked);
+  alert(`Insgesamt gearbeitet: ${formatTime(netTime)}`);
 
-  // Pause nach 6h: 30 Minuten
-  if (elapsedMs >= 6 * 60 * 60 * 1000) {
-    deducted += 30 * 60 * 1000;
-  }
+  clearInterval(workInterval);
+  workedTimeDisplay.textContent = '';
+  stampedInTime = null;
+  stampInput.value = '';
+});
 
-  // Zusätzliche Pause nach 9h: 15 Minuten
-  if (elapsedMs >= 9 * 60 * 60 * 1000) {
-    deducted += 15 * 60 * 1000;
-  }
+// Hilfsfunktionen
 
-  const netMs = elapsedMs - deducted;
-  const netTime = formatDuration(netMs);
+function subtractPause(ms) {
+  let pause = 0;
+  const h = ms / 3600000;
 
-  manualDisplay.textContent = `Arbeitszeit seit ${formatTime(manualStartTime)} (mit Pausenabzug): ${netTime}`;
-
-  if (netMs >= 8 * 60 * 60 * 1000) {
-    manualWarning.textContent = "⚠️ Achtung: Du hast 8 Stunden Arbeitszeit erreicht!";
-  } else {
-    manualWarning.textContent = "";
-  }
+  if (h > 6) pause += 30 * 60 * 1000; // 30 Minuten ab 6h
+  if (h > 9) pause += 15 * 60 * 1000; // +15 Minuten ab 9h
+  return ms - pause;
 }
 
-function formatTime(date) {
-  return date.toTimeString().substring(0, 5);
-}
-
-function formatDuration(ms) {
+function formatTime(ms) {
   const totalSeconds = Math.floor(ms / 1000);
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
