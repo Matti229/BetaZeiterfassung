@@ -3,36 +3,34 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ZeiterfassungsApp Project One</title>
+  <title>ZeiterfassungsApp Beta</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json" />
 </head>
 <body>
   <header>
-    <h1>ZeiterfassungsApp</h1>
-    <button id="logoutBtn">Logout</button>
+    <h1>ZeiterfassungsApp Beta</h1>
+    <div id="userDisplay">Angemeldet als: <span id="userName"></span></div>
+    <button id="logoutBtn"><img src="icons/logout.png" alt="Logout" /></button>
   </header>
 
   <main>
-    <section id="projectSection">
-      <h2>Projektverwaltung</h2>
-      <input type="text" id="newProjectInput" placeholder="Neues Projekt">
-      <button id="addProjectBtn">Hinzufügen</button>
+    <section class="project-input-section">
+      <input type="text" id="newProjectInput" placeholder="Neues Projekt" />
+      <button id="addProjectBtn">Projekt hinzufügen</button>
+    </section>
+
+    <section class="project-control-section">
       <select id="projectDropdown">
         <option value="">Projekt wählen</option>
       </select>
-      <button id="startBtn">
-        <img src="icons/start.png" alt="Start">
-      </button>
-      <p id="messageArea"></p>
+      <button id="startBtn"><img src="icons/start.png" alt="Start" /></button>
     </section>
 
-    <section id="liveTimers">
-      <h2>Aktive Timer</h2>
-      <div id="liveTimerContainer"></div>
-    </section>
+    <section id="liveTimerContainer" class="live-timers"></section>
 
-    <section id="summarySection">
-      <h2>Zeitzusammenfassung</h2>
+    <section class="summary-section">
+      <h2>Zusammenfassung</h2>
       <table>
         <thead>
           <tr>
@@ -43,23 +41,23 @@
         </thead>
         <tbody id="summaryBody"></tbody>
       </table>
-      <button id="exportBtn">Exportieren (CSV)</button>
+      <button id="exportBtn">Exportieren</button>
     </section>
 
-    <section id="manualSection">
-      <h2>Manuelle Einstempelzeit (Beta)</h2>
-      <input type="text" id="manualStartInput" placeholder="z.B. 07:30">
-      <button id="manualStartBtn">Einstempeln</button>
-      <p id="manualDisplay">Noch keine Zeit eingetragen.</p>
-      <p id="manualWarning" style="color: red;"></p>
+    <section class="stamp-section">
+      <h2>Manuelles Einstempeln</h2>
+      <input type="time" id="stampInTime" />
+      <button id="stampInBtn">Einstempeln</button>
+      <button id="stampOutBtn">Ausstempeln</button>
+      <div id="workTimeDisplay">Gearbeitete Zeit: <span id="workedTime">00:00:00</span></div>
+      <div id="stampMessage" class="message"></div>
+    </section>
+
+    <section>
+      <p id="messageArea" class="message"></p>
     </section>
   </main>
 
-  <footer>
-    <p>&copy; 2025 ZeiterfassungsApp Project One</p>
-  </footer>
-
-  <script src="auth.js"></script>
   <script src="app.js"></script>
   <script src="beta.js"></script>
 </body>
