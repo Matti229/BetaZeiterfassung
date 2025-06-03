@@ -10,17 +10,12 @@ const liveTimerContainer = document.getElementById('liveTimerContainer');
 const summaryBody = document.getElementById('summaryBody');
 const exportBtn = document.getElementById('exportBtn');
 const messageArea = document.getElementById('messageArea');
-const stampInput = document.getElementById('stampInput');
-const stampBtn = document.getElementById('stampBtn');
-const unstampBtn = document.getElementById('unstampBtn');
-const stampInfo = document.getElementById('stampInfo');
 
 const username = localStorage.getItem('username') || 'gast';
 
+// Load stored data
 let storedProjects = JSON.parse(localStorage.getItem(`${username}_projects`)) || [];
 let storedEntries = JSON.parse(localStorage.getItem(`${username}_entries`)) || [];
-let manualStartTime = null;
-let manualTimerInterval = null;
 
 // Initialize UI
 displayProjects();
@@ -111,13 +106,13 @@ function storeEntry(project, time) {
 function displaySummary() {
   const summaryMap = {};
   for (const entry of storedEntries) {
-    const key = `${entry.date}-${entry.project}`;
+    const key = `${entry.date}::${entry.project}`;
     summaryMap[key] = (summaryMap[key] || 0) + entry.time;
   }
 
   summaryBody.innerHTML = '';
   Object.keys(summaryMap).forEach(key => {
-    const [date, project] = key.split('-');
+    const [date, project] = key.split('::');
     const hours = (summaryMap[key] / 3600000).toFixed(2);
     const row = `<tr><td>${date}</td><td>${project}</td><td>${hours}</td></tr>`;
     summaryBody.insertAdjacentHTML('beforeend', row);
@@ -160,39 +155,4 @@ exportBtn.addEventListener('click', () => {
   a.download = 'zeiten.csv';
   a.click();
   URL.revokeObjectURL(url);
-});
-
-stampBtn.addEventListener('click', () => {
-  const timeString = stampInput.value;
-  const now = new Date();
-  const [hour, minute] = timeString.split(':').map(Number);
-  if (isNaN(hour) || isNaN(minute)) return;
-  now.setHours(hour, minute, 0, 0);
-  manualStartTime = now;
-
-  if (manualTimerInterval) clearInterval(manualTimerInterval);
-
-  manualTimerInterval = setInterval(() => {
-    const diff = Date.now() - manualStartTime.getTime();
-    let adjusted = diff;
-    if (diff >= 6 * 3600000) adjusted -= 30 * 60000;
-    if (diff >= 9 * 3600000) adjusted -= 15 * 60000;
-
-    stampInfo.textContent = `Gearbeitet: ${formatTime(adjusted)}`;
-
-    if (adjusted >= 8 * 3600000) {
-      stampInfo.style.color = 'red';
-    } else {
-      stampInfo.style.color = 'black';
-    }
-  }, 1000);
-});
-
-unstampBtn.addEventListener('click', () => {
-  if (manualTimerInterval) {
-    clearInterval(manualTimerInterval);
-    manualTimerInterval = null;
-    stampInfo.textContent = '';
-    manualStartTime = null;
-  }
 });
