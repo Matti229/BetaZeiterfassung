@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ZeiterfassungsApp Project One</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>ZeiterfassungsApp</h1>
+    <button id="logoutBtn">Logout</button>
+  </header>
+
+  <main>
+    <section id="projectSection">
+      <h2>Projektverwaltung</h2>
+      <input type="text" id="newProjectInput" placeholder="Neues Projekt">
+      <button id="addProjectBtn">Hinzufügen</button>
+      <select id="projectDropdown">
+        <option value="">Projekt wählen</option>
+      </select>
+      <button id="startBtn">
+        <img src="icons/start.png" alt="Start">
+      </button>
+      <p id="messageArea"></p>
+    </section>
+
+    <section id="liveTimers">
+      <h2>Aktive Timer</h2>
+      <div id="liveTimerContainer"></div>
+    </section>
+
+    <section id="summarySection">
+      <h2>Zeitzusammenfassung</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Datum</th>
+            <th>Projekt</th>
+            <th>Stunden</th>
+          </tr>
+        </thead>
+        <tbody id="summaryBody"></tbody>
+      </table>
+      <button id="exportBtn">Exportieren (CSV)</button>
+    </section>
+
+    <section id="manualSection">
+      <h2>Manuelle Einstempelzeit (Beta)</h2>
+      <input type="text" id="manualStartInput" placeholder="z.B. 07:30">
+      <button id="manualStartBtn">Einstempeln</button>
+      <p id="manualDisplay">Noch keine Zeit eingetragen.</p>
+      <p id="manualWarning" style="color: red;"></p>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 ZeiterfassungsApp Project One</p>
+  </footer>
+
+  <script src="auth.js"></script>
+  <script src="app.js"></script>
+  <script src="beta.js"></script>
+</body>
+</html>
