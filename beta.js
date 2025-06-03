@@ -1,79 +1,75 @@
+// beta.js
+
 const stampInput = document.getElementById('stampInput');
 const stampBtn = document.getElementById('stampBtn');
 const outstampBtn = document.getElementById('outstampBtn');
-const workedTimeDisplay = document.getElementById('workedTime');
+const workedTime = document.getElementById('workedTime');
 
-let stampedInTime = null;
-let workInterval = null;
-let alerted8h = false;
+let manualStart = null;
+let manualInterval = null;
 
-// Handle Einstempeln
+// Einstempeln
 stampBtn.addEventListener('click', () => {
   const inputTime = stampInput.value;
   if (!inputTime) {
-    alert('Bitte Einstempelzeit eingeben.');
+    workedTime.textContent = 'Bitte Uhrzeit eingeben!';
     return;
   }
 
+  const [hours, minutes] = inputTime.split(':').map(Number);
   const now = new Date();
-  const [hours, minutes] = inputTime.split(':');
-  stampedInTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), parseInt(hours), parseInt(minutes));
+  manualStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
 
-  if (stampedInTime > now) {
-    alert('Einstempelzeit kann nicht in der Zukunft liegen.');
-    stampedInTime = null;
-    return;
-  }
+  if (manualInterval) clearInterval(manualInterval);
 
-  if (workInterval) clearInterval(workInterval);
-  alerted8h = false;
-
-  workInterval = setInterval(() => {
-    const msWorked = Date.now() - stampedInTime.getTime();
-    const netTime = subtractPause(msWorked);
-    workedTimeDisplay.textContent = `Geleistete Zeit: ${formatTime(netTime)}`;
-
-    if (!alerted8h && netTime >= 8 * 3600000) {
-      alert('Achtung: 8 Stunden erreicht!');
-      alerted8h = true;
-    }
-  }, 1000);
+  manualInterval = setInterval(updateWorkedTime, 1000);
+  updateWorkedTime();
 });
 
-// Handle Ausstempeln
+// Ausstempeln
 outstampBtn.addEventListener('click', () => {
-  if (!stampedInTime) {
-    alert('Bitte zuerst einstempeln.');
+  if (!manualStart) {
+    workedTime.textContent = 'Noch nicht eingestempelt!';
     return;
   }
 
-  const msWorked = Date.now() - stampedInTime.getTime();
-  const netTime = subtractPause(msWorked);
-  alert(`Insgesamt gearbeitet: ${formatTime(netTime)}`);
+  clearInterval(manualInterval);
+  const end = new Date();
+  const duration = end - manualStart;
 
-  clearInterval(workInterval);
-  workedTimeDisplay.textContent = '';
-  stampedInTime = null;
-  stampInput.value = '';
+  const finalTime = calculateEffectiveTime(duration);
+  workedTime.textContent = `Heute gearbeitet: ${finalTime}`;
+  manualStart = null;
 });
 
-// Hilfsfunktionen
+function updateWorkedTime() {
+  const now = new Date();
+  const duration = now - manualStart;
 
-function subtractPause(ms) {
-  let pause = 0;
-  const h = ms / 3600000;
+  const effective = calculateEffectiveTime(duration);
+  workedTime.textContent = `Aktuelle Arbeitszeit: ${effective}`;
 
-  if (h > 6) pause += 30 * 60 * 1000; // 30 Minuten ab 6h
-  if (h > 9) pause += 15 * 60 * 1000; // +15 Minuten ab 9h
-  return ms - pause;
+  const totalHours = duration / 3600000;
+  if (totalHours >= 8 && !workedTime.classList.contains('alert')) {
+    workedTime.classList.add('alert');
+    alert('Achtung: 8 Stunden erreicht!');
+  }
 }
 
-function formatTime(ms) {
-  const totalSeconds = Math.floor(ms / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+function calculateEffectiveTime(duration) {
+  let breakMinutes = 0;
+
+  const hours = duration / 3600000;
+
+  if (hours >= 6) breakMinutes += 30;
+  if (hours >= 9) breakMinutes += 15;
+
+  const adjustedDuration = duration - breakMinutes * 60000;
+  const h = Math.floor(adjustedDuration / 3600000);
+  const m = Math.floor((adjustedDuration % 3600000) / 60000);
+  const s = Math.floor((adjustedDuration % 60000) / 1000);
+
+  return `${pad(h)}:${pad(m)}:${pad(s)}`;
 }
 
 function pad(n) {
